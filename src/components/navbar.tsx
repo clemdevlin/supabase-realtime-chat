@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import { useCurrentUser } from "@/services/supabase/hooks/useCurrentUser"
-import Link from "next/link"
-import { Button } from "./ui/button"
-import { LogoutButton } from "@/services/supabase/components/logout-button"
+import { useCurrentUser } from "@/services/supabase/hooks/useCurrentUser";
+import Link from "next/link";
+import { Button } from "./ui/button";
+import { LogoutButton } from "@/services/supabase/components/logout-button";
 
 export default function Navbar() {
-  const { user, isLoading } = useCurrentUser()
+  const { user, isLoading } = useCurrentUser();
 
   return (
     <div className="border-b bg-background h-header">
-      <nav className="container mx-auto px-4 flex justify-between items-center h-full gap-4">
+      <nav className="container mx-auto px-4 sm:px-28 flex justify-between items-center h-full gap-4">
         <Link href="/" className="text-xl font-bold">
           Supachat
         </Link>
@@ -29,5 +29,5 @@ export default function Navbar() {
         )}
       </nav>
     </div>
-  )
+  );
 }
