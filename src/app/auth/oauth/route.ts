@@ -3,8 +3,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/services/supabase/server";
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const origin = "https://supachat-sc.vercel.app";
+  const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   // if "next" is in param, use it as the redirect URL
   let next = searchParams.get("next") ?? "/";
@@ -23,7 +22,7 @@ export async function GET(request: Request) {
         // we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
         return NextResponse.redirect(`${origin}${next}`);
       } else if (forwardedHost) {
-        return NextResponse.redirect(`${origin}${next}`);
+        return NextResponse.redirect(`https://${forwardedHost}${next}`);
       } else {
         return NextResponse.redirect(`${origin}${next}`);
       }
