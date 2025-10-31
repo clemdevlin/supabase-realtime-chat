@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import { ChatInput } from "@/components/chat-input"
-import { ChatMessage } from "@/components/chat-message"
-import { InviteUserModal } from "@/components/invite-user-modal"
-import { Button } from "@/components/ui/button"
-import { Message } from "@/services/supabase/actions/messages"
-import { createClient } from "@/services/supabase/client"
-import { RealtimeChannel } from "@supabase/supabase-js"
-import { useEffect, useState } from "react"
+import { ChatInput } from "@/components/chat-input";
+import { ChatMessage } from "@/components/chat-message";
+import { InviteUserModal } from "@/components/invite-user-modal";
+import { Button } from "@/components/ui/button";
+import { Message } from "@/services/supabase/actions/messages";
+import { createClient } from "@/services/supabase/client";
+import { RealtimeChannel } from "@supabase/supabase-js";
+import { useEffect, useState } from "react";
 
 export function RoomClient({
   room,
@@ -15,20 +15,20 @@ export function RoomClient({
   messages,
 }: {
   user: {
-    id: string
-    name: string
-    image_url: string | null
-  }
+    id: string;
+    name: string;
+    image_url: string | null;
+  };
   room: {
-    id: string
-    name: string
-  }
-  messages: Message[]
+    id: string;
+    name: string;
+  };
+  messages: Message[];
 }) {
   const { connectedUsers, messages: realtimeMessages } = useRealtimeChat({
     roomId: room.id,
     userId: user.id,
-  })
+  });
   const {
     loadMoreMessages,
     messages: oldMessages,
@@ -37,18 +37,18 @@ export function RoomClient({
   } = useInfiniteScrollChat({
     roomId: room.id,
     startingMessages: messages.toReversed(),
-  })
+  });
   const [sentMessages, setSentMessages] = useState<
     (Message & { status: "pending" | "error" | "success" })[]
-  >([])
+  >([]);
 
   const visibleMessages = oldMessages.concat(
     realtimeMessages,
-    sentMessages.filter(m => !realtimeMessages.find(rm => rm.id === m.id))
-  )
+    sentMessages.filter((m) => !realtimeMessages.find((rm) => rm.id === m.id))
+  );
 
   return (
-    <div className="container mx-auto h-screen-with-header border border-y-0 flex flex-col">
+    <div className="container md:max-w-5xl mx-auto h-screen-with-header border border-y-0 flex flex-col">
       <div className="flex items-center justify-between gap-2 p-4">
         <div className="border-b">
           <h1 className="text-2xl font-bold">{room.name}</h1>
@@ -85,6 +85,7 @@ export function RoomClient({
             <ChatMessage
               key={message.id}
               {...message}
+              isMe={message.author_id === user.id}
               ref={index === 0 && status === "idle" ? triggerQueryRef : null}
             />
           ))}
@@ -92,8 +93,8 @@ export function RoomClient({
       </div>
       <ChatInput
         roomId={room.id}
-        onSend={message => {
-          setSentMessages(prev => [
+        onSend={(message) => {
+          setSentMessages((prev) => [
             ...prev,
             {
               id: message.id,
@@ -106,42 +107,42 @@ export function RoomClient({
               },
               status: "pending",
             },
-          ])
+          ]);
         }}
-        onSuccessfulSend={message => {
-          setSentMessages(prev =>
-            prev.map(m =>
+        onSuccessfulSend={(message) => {
+          setSentMessages((prev) =>
+            prev.map((m) =>
               m.id === message.id ? { ...message, status: "success" } : m
             )
-          )
+          );
         }}
-        onErrorSend={id => {
-          setSentMessages(prev =>
-            prev.map(m => (m.id === id ? { ...m, status: "error" } : m))
-          )
+        onErrorSend={(id) => {
+          setSentMessages((prev) =>
+            prev.map((m) => (m.id === id ? { ...m, status: "error" } : m))
+          );
         }}
       />
     </div>
-  )
+  );
 }
 
 function useRealtimeChat({
   roomId,
   userId,
 }: {
-  roomId: string
-  userId: string
+  roomId: string;
+  userId: string;
 }) {
-  const [connectedUsers, setConnectedUsers] = useState(1)
-  const [messages, setMessages] = useState<Message[]>([])
+  const [connectedUsers, setConnectedUsers] = useState(1);
+  const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
-    const supabase = createClient()
-    let newChannel: RealtimeChannel
-    let cancel = false
+    const supabase = createClient();
+    let newChannel: RealtimeChannel;
+    let cancel = false;
 
     supabase.realtime.setAuth().then(() => {
-      if (cancel) return
+      if (cancel) return;
 
       newChannel = supabase.channel(`room:${roomId}:messages`, {
         config: {
@@ -150,15 +151,15 @@ function useRealtimeChat({
             key: userId,
           },
         },
-      })
+      });
 
       newChannel
         .on("presence", { event: "sync" }, () => {
-          setConnectedUsers(Object.keys(newChannel.presenceState()).length)
+          setConnectedUsers(Object.keys(newChannel.presenceState()).length);
         })
-        .on("broadcast", { event: "INSERT" }, payload => {
-          const record = payload.payload
-          setMessages(prevMessages => [
+        .on("broadcast", { event: "INSERT" }, (payload) => {
+          const record = payload.payload;
+          setMessages((prevMessages) => [
             ...prevMessages,
             {
               id: record.id,
@@ -170,43 +171,43 @@ function useRealtimeChat({
                 image_url: record.author_image_url,
               },
             },
-          ])
+          ]);
         })
-        .subscribe(status => {
-          if (status !== "SUBSCRIBED") return
+        .subscribe((status) => {
+          if (status !== "SUBSCRIBED") return;
 
-          newChannel.track({ userId })
-        })
-    })
+          newChannel.track({ userId });
+        });
+    });
 
     return () => {
-      cancel = true
-      if (!newChannel) return
-      newChannel.untrack()
-      newChannel.unsubscribe()
-    }
-  }, [roomId, userId])
+      cancel = true;
+      if (!newChannel) return;
+      newChannel.untrack();
+      newChannel.unsubscribe();
+    };
+  }, [roomId, userId]);
 
-  return { connectedUsers, messages }
+  return { connectedUsers, messages };
 }
 
-const LIMIT = 25
+const LIMIT = 25;
 function useInfiniteScrollChat({
   startingMessages,
   roomId,
 }: {
-  startingMessages: Message[]
-  roomId: string
+  startingMessages: Message[];
+  roomId: string;
 }) {
-  const [messages, setMessages] = useState<Message[]>(startingMessages)
+  const [messages, setMessages] = useState<Message[]>(startingMessages);
   const [status, setStatus] = useState<"idle" | "loading" | "error" | "done">(
     startingMessages.length === 0 ? "done" : "idle"
-  )
+  );
 
   async function loadMoreMessages() {
-    if (status === "done" || status === "loading") return
-    const supabase = createClient()
-    setStatus("loading")
+    if (status === "done" || status === "loading") return;
+    const supabase = createClient();
+    setStatus("loading");
 
     const { data, error } = await supabase
       .from("message")
@@ -216,39 +217,39 @@ function useInfiniteScrollChat({
       .eq("chat_room_id", roomId)
       .lt("created_at", messages[0].created_at)
       .order("created_at", { ascending: false })
-      .limit(LIMIT)
+      .limit(LIMIT);
 
     if (error) {
-      setStatus("error")
-      return
+      setStatus("error");
+      return;
     }
 
-    setMessages(prev => [...data.toReversed(), ...prev])
-    setStatus(data.length < LIMIT ? "done" : "idle")
+    setMessages((prev) => [...data.toReversed(), ...prev]);
+    setStatus(data.length < LIMIT ? "done" : "idle");
   }
 
   function triggerQueryRef(node: HTMLDivElement | null) {
-    if (node == null) return
+    if (node == null) return;
     const observer = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
+      (entries) => {
+        entries.forEach((entry) => {
           if (entry.isIntersecting && entry.target === node) {
-            observer.unobserve(node)
-            loadMoreMessages()
+            observer.unobserve(node);
+            loadMoreMessages();
           }
-        })
+        });
       },
       {
         rootMargin: "50px",
       }
-    )
+    );
 
-    observer.observe(node)
+    observer.observe(node);
 
     return () => {
-      observer.disconnect()
-    }
+      observer.disconnect();
+    };
   }
 
-  return { loadMoreMessages, messages, status, triggerQueryRef }
+  return { loadMoreMessages, messages, status, triggerQueryRef };
 }
